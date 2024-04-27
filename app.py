@@ -25,7 +25,7 @@ def index():
 
 def random_walk_adjustment(walk_type):
     if walk_type == 'standard':
-        return random.normal(0, 10,100)
+        return random.normal(0, 10, 100)
     elif walk_type == 'volatile':
         return random.randint(-5, 5)
     elif walk_type == 'biased_positive':
