@@ -49,7 +49,6 @@ function Home(){
 
   const [graphType, setGraphType] = useState('all');
 
-
   useEffect(() => {
     const fetchData = (type) => {
       axios.get(`http://localhost:5000/random-number/${type}`)
@@ -68,9 +67,10 @@ function Home(){
         .then(response => {
           updateOrderData(response.data.orders, type);
         })
+
         .catch(error => {
           console.error('Error fetching orders:', error);
-        });
+        }  );
     };
 
     if (graphType === 'all') {
@@ -140,6 +140,10 @@ function Home(){
 const handleSubmit = async (event) => {
   event.preventDefault();
   try {
+        for (let d in formData) {
+          d.field3 = graphData[-1];
+        }
+
     console.log('Submitting form data:', formData);
     // Assuming formData should be an array of objects, each representing a form.
     // If formData is structured differently, adjust the following line accordingly.
@@ -270,18 +274,19 @@ const handleSubmit = async (event) => {
         }}
       />
         <OrderForm
-                                   type={type}
-                                   formData={formData[type] || {}}
-                                   onChange={handleFormChange}
-                                 />
+       type={type}
+       formData={formData[type] || {}}
+       onChange={handleFormChange}
+     />
       <table style={tableStyle}>
           <thead>
             <tr>
               <th style={cellStyle}>Order ID</th>
               <th style={cellStyle}>Type</th>
               <th style={cellStyle}>Price</th>
-              <th style={cellStyle}>Amount</th>
-              <th style={cellStyle}>Executed</th>
+              <th style={cellStyle}>Time</th>
+              <th style={cellStyle}>Spot</th>
+              <th style= {cellStyle}>Profit</th>
             </tr>
           </thead>
           <tbody>
@@ -290,10 +295,10 @@ const handleSubmit = async (event) => {
                 <td style={cellStyle}>{order.BetID}</td>
                 <td style={cellStyle}>{order.BetAmount}</td>
                 <td style={cellStyle}>{order.BetPrice}</td>
-                <td style={cellStyle}>{order.time}</td>
-                <td style={cellStyle}>
+                <td style={cellStyle}>{order.Time}</td>
+                <td style={cellStyle}>{order.Spot}</td>
+                <td style={cellStyle}>{parseFloat(order.Spot) - parseFloat(order.Time)}</td>
 
-                </td>
               </tr>
             ))}
         </tbody>
