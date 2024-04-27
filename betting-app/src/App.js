@@ -21,6 +21,26 @@ function App() {
     biased_negative: []
   });
 
+  const [formData, setFormData] = useState({
+    standard: { field1: '', field2: '' },
+    volatile: { field1: '', field2: '' },
+    biased_positive: { field1: '', field2: '' },
+    biased_negative: { field1: '', field2: '' }
+  });
+
+  const [timeLeft, setTimeLeft] = useState(60);
+  
+
+  const handleFormChange = (type, name, value) => {
+    setFormData(prevData => ({
+      ...prevData,
+      [type]: {
+        ...prevData[type],
+        [name]: value
+      }
+    }));
+  };
+
   const [graphType, setGraphType] = useState('all');
   const prevType = useRef(null);
 
@@ -50,7 +70,7 @@ function App() {
       } else {
         fetchData(graphType);
       }
-    }, 2000);
+    }, 5000);
     return () => clearInterval(intervalId);
   }, [graphType]);
 
@@ -80,6 +100,48 @@ function App() {
     });
   };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post('/send-order', formData);
+      console.log('Response:', response.data);
+      alert('Data submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting data:', error);
+      alert('Failed to submit data.');
+    }
+  };
+
+  function OrderForm({ type, formData, onChange }) {
+
+    return (
+      <form onSubmit={(event) => handleSubmit(event, type)}>
+        <input
+          type="text"
+          name="field1"
+          value={formData.field1}
+          onChange={e => onChange(type, e.target.name, e.target.value)}
+          placeholder="Enter field 1"
+          style={{ margin: '5px', width: '140px', height: '30px' }}
+        />
+        <input
+          type="text"
+          name="field2"
+          value={formData.field2}
+          onChange={e => onChange(type, e.target.name, e.target.value)}
+          placeholder="Enter field 2"
+          style={{ margin: '5px', width: '140px', height: '30px' }}
+        />
+        <button
+          type="submit"
+          style={{ margin: '5px', width: '100px', height: '35px', backgroundColor: 'darkblue', color: 'white' }}
+        >
+          Submit
+        </button>
+      </form>
+    );
+  }  
+  
   const bigComponents = Object.keys(graphData).map((type) => (
     <div key={type} style={{ width: '100%', height: '50%' }}>
       <h3>{type.replace('_', ' ').toUpperCase()}</h3>
@@ -113,28 +175,34 @@ function App() {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              position: 'top',
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-            },
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              },
           },
           scales: {
-            x: {
-              display: true,
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-            },
+              x: {
+                display: true,
+              },
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+              },
           }
         }}
       />
+      <OrderForm
+        type={type}
+        formData={formData[type]}
+        onChange={handleFormChange}
+      />
     </div>
   ));
+  
   
   const graphComponents = Object.keys(graphData).map((type) => (
     <div key={type} style={{ width: '50%', height: '45%', marginBottom: '50px' }}>
@@ -174,7 +242,42 @@ function App() {
         }}
       />
     </div>
+    
   ));
+
+  function Timer() {
+  
+    useEffect(() => {
+      const timer = setInterval(() => {
+        // Decrease timeLeft by 1 every second
+        setTimeLeft(prevTime => prevTime - 2);
+        if (timeLeft === 0) {axios.post('/settle')
+        .then(response => {
+          console.log("Settlement completed!");
+        })
+        .catch(error => {
+          console.error("Error settling:", error);
+        }); setTimeLeft(60);}
+      }, 3000);
+  
+      // Cleanup function to clear the interval when component unmounts
+      return () => clearInterval(timer);
+    }, []); // Run only once on component mount
+    
+    const totalTime = 60;
+    const percentage = (timeLeft / totalTime) * 100;
+    const circumference = 2 * Math.PI * 40; // Circumference of the circle
+    const strokeLength = (percentage / 100) * circumference;
+    
+    return (
+      <div style={{ position: 'relative', width: '160px', height: '150px', marginTop: '20px' }}>
+        <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+          <circle cx="50" cy="50" r="40" fill="none" strokeWidth="20" stroke="#ccc" />
+          <circle cx="50" cy="50" r="40" fill="none" strokeWidth="20" stroke="#007bff" strokeDasharray={`${strokeLength} ${circumference - strokeLength}`} />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', width: '100%', height: '90vh' }}>
@@ -185,6 +288,7 @@ function App() {
         <button style={{ margin: '5px', width: '150px', height: '50px', border: 'none', backgroundColor: 'teal', color: 'white', fontSize: '20px' }} onClick={() => setGraphType('biased_positive')}>Biased Pos</button>
         <button style={{ margin: '5px', width: '150px', height: '50px', border: 'none', backgroundColor: 'teal', color: 'white', fontSize: '20px' }} onClick={() => setGraphType('biased_negative')}>Biased Neg</button>
         <button style={{ margin: '5px', width: '150px', height: '200px', border: 'none', backgroundColor: 'navy', color: 'white', fontSize: '25px' }} onClick={() => setGraphType('all')}>All Graphs</button>
+        <Timer />
       </div>
       <div style={{ display: 'flex', flexGrow: 1, flexWrap: 'wrap' }}>
         {graphType === 'all' ? graphComponents : bigComponents.filter(comp => comp.key === graphType)}
