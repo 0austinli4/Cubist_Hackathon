@@ -196,6 +196,7 @@ def run_delay(platforms):
             realtime=True,
         )
 
+
 def trains_now_board(platforms):
     run_graph = True
     num_trains = 40
@@ -230,9 +231,28 @@ def trains_now_board(platforms):
             platforms_to_subscribe_to,
             num_trains,
             starttime=datetime.utcnow(),
-            endtime=timedelta(minutes=0.01),
+            endtime=timedelta(minutes=1),
             realtime=True,
         )
+
+
+# def trains_now_board(platforms):
+#     run_graph = True
+#     num_trains = 40
+
+#     # Adapt this section to suit how data needs to be prepared and run
+#     platforms_to_subscribe_to = []
+#     for platform in platforms:
+#         stop_id, train_line = platform.split(":")
+#         platforms_to_subscribe_to.append((stop_id, train_line))
+
+#     if run_graph:
+#         # Simulate a run; adapt to actual use case
+#         result = departure_board(platforms_to_subscribe_to, num_trains)
+#         return result
+#     else:
+#         return {'message': 'Graph not run'}
+    
 
 if __name__ == "__main__":
     platforms = ['127:123']
