@@ -143,6 +143,28 @@ def main():
     else:
         print("Failed to add bet.")
 
+def get_all_bets():
+    """
+    Retrieves all bets from the database.
+    """
+    session = Session()
+    try:
+        all_bets = session.query(Bet).all()
+        bets_list = [
+            {
+                'BetID': bet.BetID,
+                'BetAmount': float(bet.BetAmount),
+                'BetPrice': float(bet.BetPrice),
+                'Time': bet.Time.isoformat(),  # Convert datetime to string
+                'Spot': bet.Spot
+            } for bet in all_bets
+        ]
+        return bets_list
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+    finally:
+        session.close()
 
 if __name__ == "__main__":
     main()

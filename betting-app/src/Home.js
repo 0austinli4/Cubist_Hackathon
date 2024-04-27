@@ -64,7 +64,7 @@ function Home(){
         });
 
         // Fetch orders data from the '/orders' endpoint
-      axios.get(`http://localhost:5000/orders/${type}`)
+      axios.get(`http://localhost:5000/orders`)
         .then(response => {
           updateOrderData(response.data.orders, type);
         })
@@ -170,18 +170,7 @@ const handleSubmit = async (event) => {
 };
 
 
-  const cancelOrder = (orderId) => {
-    // Function to cancel order by sending a request to the '/cancel-orders' endpoint
-    axios.post('/cancel-orders', { orderId })
-      .then(response => {
-        console.log('Order cancelled successfully:', response.data);
-        // Assuming response data contains updated orders information
-        setOrderData(response.data);
-      })
-      .catch(error => {
-        console.error('Error cancelling order:', error);
-      });
-  };
+
 
   function OrderForm({ type, formData, onChange }) {
 
@@ -280,7 +269,11 @@ const handleSubmit = async (event) => {
           }
         }}
       />
-
+        <OrderForm
+                                   type={type}
+                                   formData={formData[type] || {}}
+                                   onChange={handleFormChange}
+                                 />
       <table style={tableStyle}>
           <thead>
             <tr>
@@ -294,15 +287,12 @@ const handleSubmit = async (event) => {
           <tbody>
             {orderData[type].map((order, index) => (
               <tr key={index}>
-                <td style={cellStyle}>{order.orderID}</td>
-                <td style={cellStyle}>{order.type}</td>
-                <td style={cellStyle}>{order.price}</td>
-                <td style={cellStyle}>{order.amount}</td>
-                <td style={cellStyle}>{order.executed}</td>
+                <td style={cellStyle}>{order.BetID}</td>
+                <td style={cellStyle}>{order.BetAmount}</td>
+                <td style={cellStyle}>{order.BetPrice}</td>
+                <td style={cellStyle}>{order.time}</td>
                 <td style={cellStyle}>
-                  <button onClick={() => cancelOrder(order.orderID)}>
-                    Cancel
-                  </button>
+
                 </td>
               </tr>
             ))}
@@ -415,12 +405,7 @@ const handleSubmit = async (event) => {
       </div>
       <div style={{ display: 'flex', flexGrow: 1, flexWrap: 'wrap' }}>
         {graphType === 'all' ? graphComponents : bigComponents.filter(comp => comp.key === graphType)}
-{graphType != 'all' ? <OrderForm
-                     ref={inputRef}
-                     type={graphType}
-                     formData={formData[graphType] || {}}
-                     onChange={handleFormChange}
-                   /> : null}
+
                    </div>
       </div>
        <div>

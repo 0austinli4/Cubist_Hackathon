@@ -40,9 +40,11 @@ def random_number(walk_type):
     else:
         return jsonify({'error': 'Invalid walk type'}), 400
 
-@app.route('/orders/<walk_type>')
-def no_orders(walk_type):
-    return jsonify({'orders':[{'orderID':0, 'type': 0, 'price':0, 'amount':0, 'executed':0}]})
+@app.route('/orders',  methods=["GET", "POST"])
+def no_orders():
+    rows = database.get_all_bets()
+    print(rows)
+    return jsonify({'orders': rows})
 
 @app.route('/inputData', methods=["POST"])
 def input_fields():
