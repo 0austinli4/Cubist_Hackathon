@@ -22,10 +22,10 @@ function Home(){
   });
 
   const [formData, setFormData] = useState({
-    standard: { field1: '', field2: '' },
-    volatile: { field1: '', field2: '' },
-    biased_positive: { field1: '', field2: '' },
-    biased_negative: { field1: '', field2: '' }
+    standard: { field1: '', field2: '' , field3: ''},
+    volatile: { field1: '', field2: '', field3: '' },
+    biased_positive: { field1: '', field2: '',field3: '' },
+    biased_negative: { field1: '', field2: '' ,field3: ''}
   });
 
   const [timeLeft, setTimeLeft] = useState(60);
@@ -48,7 +48,7 @@ function Home(){
   };
 
   const [graphType, setGraphType] = useState('all');
-  const prevType = useRef(null);
+
 
   useEffect(() => {
     const fetchData = (type) => {
@@ -125,7 +125,11 @@ function Home(){
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post('/send-order', formData);
+      console.log(formData);
+//      for (let d in formData) {
+//        d.field3 = '3'; //hardcoded
+//      }
+      const response = await axios.post('http://localhost:5000/inputData', formData);
       console.log('Response:', response.data);
       alert('Data submitted successfully!');
     } catch (error) {
@@ -153,6 +157,7 @@ function Home(){
       <form onSubmit={(event) => handleSubmit(event, type)}>
         <input
           type="text"
+
           name="field1"
           value={formData.field1}
           onChange={e => onChange(type, e.target.name, e.target.value)}
@@ -243,11 +248,7 @@ function Home(){
           }
         }}
       />
-      <OrderForm
-        type={type}
-        formData={formData[type]}
-        onChange={handleFormChange}
-      />
+
       <table style={tableStyle}>
           <thead>
             <tr>
@@ -316,6 +317,7 @@ function Home(){
           }
         }}
       />
+
     </div>
 
   ));
@@ -353,7 +355,15 @@ function Home(){
       </div>
     );
   }
-
+  const inputRef= useRef(null)
+  const formInput = () => {
+            <OrderForm
+                   ref={inputRef}
+                   type={graphType}
+                   formData={formData[graphType] || {}}
+                   onChange={handleFormChange}
+                 />
+  }
   return (
     <div>
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '90vh' }}>
@@ -373,7 +383,16 @@ function Home(){
       </div>
       <div style={{ display: 'flex', flexGrow: 1, flexWrap: 'wrap' }}>
         {graphType === 'all' ? graphComponents : bigComponents.filter(comp => comp.key === graphType)}
+{graphType != 'all' ? <OrderForm
+                     ref={inputRef}
+                     type={graphType}
+                     formData={formData[graphType] || {}}
+                     onChange={handleFormChange}
+                   /> : null}
+                   </div>
       </div>
+       <div>
+
       </div>
     </div>
     </div>

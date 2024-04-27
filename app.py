@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import random
 import os
+import database
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
@@ -42,6 +43,17 @@ def random_number(walk_type):
 @app.route('/orders/<walk_type>')
 def no_orders(walk_type):
     return jsonify({'orders':[{'orderID':0, 'type': 0, 'price':0, 'amount':0, 'executed':0}]})
+
+@app.route('/inputData', methods=["POST"])
+def input_fields():
+    data = request.json  # Get JSON data from request body
+        # Process the received data as needed
+    betidlist = []
+    for form in data:
+        if form['field1'] != '':
+            betidlist.append(database.add_new_bet(form['field1'], form['field2'], form['field3']))
+
+
 
 if __name__ == '__main__':
     socketio.run(app)
