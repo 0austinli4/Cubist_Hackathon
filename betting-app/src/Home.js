@@ -357,10 +357,13 @@ function Home(){
   return (
     <div>
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '90vh' }}>
+      <div style={{display: 'flex', flexDirection:'row'}}>
+      <img src="logo.png" alt="Logo" style={{ width: '160px', height: '160px', marginBottom: '-35px', marginTop: '20px' }} />
       <PageHeader> Today's Bets </PageHeader>
+      </div>
       <div style={{ display: 'flex', width: '100%', height: '90vh'}}>
       <div style={{ display: 'flex', flexDirection: 'column', margin: '10px'}}>
-        <img src="logo.png" alt="Logo" style={{ width: '160px', height: '160px', marginBottom: '-35px', marginTop: '-30px' }} />
+
         <button style={{ margin: '5px', width: '150px', height: '50px', border: 'none', backgroundColor: 'teal', color: 'white', fontSize: '20px' }} onClick={() => setGraphType('standard')}>Standard</button>
         <button style={{ margin: '5px', width: '150px', height: '50px', border: 'none', backgroundColor: 'teal', color: 'white', fontSize: '20px' }} onClick={() => setGraphType('volatile')}>Volatile</button>
         <button style={{ margin: '5px', width: '150px', height: '50px', border: 'none', backgroundColor: 'teal', color: 'white', fontSize: '20px' }} onClick={() => setGraphType('biased_positive')}>Biased Pos</button>
