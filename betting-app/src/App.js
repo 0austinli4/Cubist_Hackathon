@@ -17,21 +17,19 @@ function App() {
   const hoverStyle = {
     color: '#0056b3' /* Change color on hover */
   };
-
-  return (
+   return (
     <Router>
-      <div style={{display: 'flex'}}>
-        <div style={{ minHeight: '100vh' }}>
+        <div>
             <nav style={{ width: '200px',  position: 'absolute', top: 80, right: 0, margin: '20px' }}>
               <CustomLink to="/" >Home</CustomLink>
               <CustomLink to="/profile">Profile</CustomLink>
             </nav>
         </div>
+
          <Routes>
         <Route exact path="/" element={<Home/>} />
         <Route path="/profile" element={<Profile/>} />
         </Routes>
-      </div>
     </Router>
   );
 }
