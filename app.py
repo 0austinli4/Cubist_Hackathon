@@ -5,12 +5,17 @@ import random
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')  # Use environment variable or default
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Keep track of a global variable safely
-curr_number = 0
+# Global variables for different random walks
+current_numbers = {
+    'standard': 0,
+    'volatile': 0,
+    'biased_positive': 0,
+    'biased_negative': 0
+}
 
 @app.route('/')
 def index():
@@ -31,11 +36,23 @@ def handle_place_bet(json):
     except Exception as e:
         emit('error', {'message': str(e)})
 
-@app.route('/random-number')
-def random_number():
-    global curr_number
-    curr_number += random.randint(-2, 2)  # Adjust the current number by a random amount between -2 and 2
-    return jsonify({'random_number': curr_number})
+def random_walk_adjustment(walk_type):
+    if walk_type == 'standard':
+        return random.randint(-2, 2)
+    elif walk_type == 'volatile':
+        return random.randint(-5, 5)
+    elif walk_type == 'biased_positive':
+        return random.randint(0, 3)
+    elif walk_type == 'biased_negative':
+        return random.randint(-3, 0)
+
+@app.route('/random-number/<walk_type>')
+def random_number(walk_type):
+    if walk_type in current_numbers:
+        current_numbers[walk_type] += random_walk_adjustment(walk_type)
+        return jsonify({'random_number': current_numbers[walk_type]})
+    else:
+        return jsonify({'error': 'Invalid walk type'}), 400
 
 if __name__ == '__main__':
     socketio.run(app)
