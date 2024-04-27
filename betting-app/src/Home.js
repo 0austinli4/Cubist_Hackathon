@@ -122,21 +122,53 @@ function Home(){
     });
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      console.log(formData);
-//      for (let d in formData) {
-//        d.field3 = '3'; //hardcoded
-//      }
-      const response = await axios.post('http://localhost:5000/inputData', formData);
-      console.log('Response:', response.data);
-      alert('Data submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      alert('Failed to submit data.');
+//  const handleSubmit = async (event) => {
+//    event.preventDefault();
+//    try {
+//      console.log(formData);
+////      for (let d in formData) {
+////        d.field3 = '3'; //hardcoded
+////      }
+//      const response = await axios.post('http://localhost:5000/inputData', formData);
+//      console.log('Response:', response.data);
+//      alert('Data submitted successfully!');
+//    } catch (error) {
+//      console.error('Error submitting data:', error);
+//      alert('Failed to submit data.');
+//    }
+//  };
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  try {
+    console.log('Submitting form data:', formData);
+    // Assuming formData should be an array of objects, each representing a form.
+    // If formData is structured differently, adjust the following line accordingly.
+    const dataToSend = Object.keys(formData).map(key => ({
+      ...formData[key],
+      field3: '3' // if you still need to hardcode field3
+    }));
+
+    const response = await fetch('http://localhost:5000/inputData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
     }
-  };
+
+    const responseData = await response.json();
+    console.log('Response:', responseData);
+    alert('Data submitted successfully!');
+  } catch (error) {
+    console.error('Error submitting data:', error);
+    alert('Failed to submit data.');
+  }
+};
+
 
   const cancelOrder = (orderId) => {
     // Function to cancel order by sending a request to the '/cancel-orders' endpoint

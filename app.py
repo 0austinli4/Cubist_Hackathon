@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import random
@@ -51,9 +51,9 @@ def input_fields():
     betidlist = []
     for form in data:
         if form['field1'] != '':
-            betidlist.append(database.add_new_bet(form['field1'], form['field2'], form['field3']))
+            betidlist.append(database.add_new_bet(form['field1'], form['field2'], 3))
 
-
+    return jsonify({'status':'success', 'bet_id':betidlist}),200
 
 if __name__ == '__main__':
     socketio.run(app)

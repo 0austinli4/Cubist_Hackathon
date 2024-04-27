@@ -26,7 +26,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 
-def add_new_bet(bet_amount, bet_price, bet_time, input_spot):
+def add_new_bet(bet_amount, bet_price, input_spot=1):
     """
     Adds a new bet to the database and returns the ID of the new bet.
     """
@@ -35,7 +35,7 @@ def add_new_bet(bet_amount, bet_price, bet_time, input_spot):
         new_bet = Bet(
             BetAmount=bet_amount,
             BetPrice=bet_price,
-            Time=bet_time,
+            Time=datetime.now(),
             Spot=input_spot  # Corrected position of input_spot with comma
         )
         session.add(new_bet)
