@@ -1,10 +1,14 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import random
 import os
+
+import database
+
 import csp
 # from csp_mta_team import departure_board  # Adapt this import according to your actual module structure
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
@@ -68,6 +72,25 @@ def random_number(walk_type):
         return jsonify({'random_number': current_numbers[walk_type], 'bid': (current_numbers[walk_type]-1-random.random()), 'ask':(current_numbers[walk_type]+1+random.random())})
     else:
         return jsonify({'error': 'Invalid walk type'}), 400
+
+
+@app.route('/orders',  methods=["GET", "POST"])
+def no_orders():
+    rows = database.get_all_bets()
+    print(rows)
+    return jsonify({'orders': rows})
+
+@app.route('/inputData', methods=["POST"])
+def input_fields():
+    data = request.json  # Get JSON data from request body
+        # Process the received data as needed
+    betidlist = []
+    for form in data:
+        if form['field1'] != '':
+            betidlist.append(database.add_new_bet(form['field1'], form['field2'], 3))
+
+    return jsonify({'status':'success', 'bet_id':betidlist}),200
+
     
 @app.route('/train-now', methods=['POST'])
 def train_order(strings):

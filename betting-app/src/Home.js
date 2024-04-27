@@ -22,10 +22,10 @@ function Home(){
   });
 
   const [formData, setFormData] = useState({
-    standard: { field1: '', field2: '' },
-    volatile: { field1: '', field2: '' },
-    biased_positive: { field1: '', field2: '' },
-    biased_negative: { field1: '', field2: '' }
+    standard: { field1: '', field2: '' , field3: ''},
+    volatile: { field1: '', field2: '', field3: '' },
+    biased_positive: { field1: '', field2: '',field3: '' },
+    biased_negative: { field1: '', field2: '' ,field3: ''}
   });
 
   const [timeLeft, setTimeLeft] = useState(60);
@@ -48,7 +48,6 @@ function Home(){
   };
 
   const [graphType, setGraphType] = useState('all');
-  const prevType = useRef(null);
 
   useEffect(() => {
     const fetchData = (type) => {
@@ -64,13 +63,14 @@ function Home(){
         });
 
         // Fetch orders data from the '/orders' endpoint
-      axios.get(`http://localhost:5000/orders/${type}`)
+      axios.get(`http://localhost:5000/orders`)
         .then(response => {
           updateOrderData(response.data.orders, type);
         })
+
         .catch(error => {
           console.error('Error fetching orders:', error);
-        });
+        }  );
     };
 
     if (graphType === 'all') {
@@ -122,30 +122,59 @@ function Home(){
     });
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await axios.post('/send-order', formData);
-      console.log('Response:', response.data);
-      alert('Data submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      alert('Failed to submit data.');
-    }
-  };
+//  const handleSubmit = async (event) => {
+//    event.preventDefault();
+//    try {
+//      console.log(formData);
+////      for (let d in formData) {
+////        d.field3 = '3'; //hardcoded
+////      }
+//      const response = await axios.post('http://localhost:5000/inputData', formData);
+//      console.log('Response:', response.data);
+//      alert('Data submitted successfully!');
+//    } catch (error) {
+//      console.error('Error submitting data:', error);
+//      alert('Failed to submit data.');
+//    }
+//  };
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  try {
+        for (let d in formData) {
+          d.field3 = graphData[-1];
+        }
 
-  const cancelOrder = (orderId) => {
-    // Function to cancel order by sending a request to the '/cancel-orders' endpoint
-    axios.post('/cancel-orders', { orderId })
-      .then(response => {
-        console.log('Order cancelled successfully:', response.data);
-        // Assuming response data contains updated orders information
-        setOrderData(response.data);
-      })
-      .catch(error => {
-        console.error('Error cancelling order:', error);
-      });
-  };
+    console.log('Submitting form data:', formData);
+    // Assuming formData should be an array of objects, each representing a form.
+    // If formData is structured differently, adjust the following line accordingly.
+    const dataToSend = Object.keys(formData).map(key => ({
+      ...formData[key],
+      field3: '3' // if you still need to hardcode field3
+    }));
+
+    const response = await fetch('http://localhost:5000/inputData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const responseData = await response.json();
+    console.log('Response:', responseData);
+    alert('Data submitted successfully!');
+  } catch (error) {
+    console.error('Error submitting data:', error);
+    alert('Failed to submit data.');
+  }
+};
+
+
+
 
   function OrderForm({ type, formData, onChange }) {
 
@@ -153,6 +182,7 @@ function Home(){
       <form onSubmit={(event) => handleSubmit(event, type)}>
         <input
           type="text"
+
           name="field1"
           value={formData.field1}
           onChange={e => onChange(type, e.target.name, e.target.value)}
@@ -243,34 +273,32 @@ function Home(){
           }
         }}
       />
-      <OrderForm
-        type={type}
-        formData={formData[type]}
-        onChange={handleFormChange}
-      />
+        <OrderForm
+       type={type}
+       formData={formData[type] || {}}
+       onChange={handleFormChange}
+     />
       <table style={tableStyle}>
           <thead>
             <tr>
               <th style={cellStyle}>Order ID</th>
               <th style={cellStyle}>Type</th>
               <th style={cellStyle}>Price</th>
-              <th style={cellStyle}>Amount</th>
-              <th style={cellStyle}>Executed</th>
+              <th style={cellStyle}>Time</th>
+              <th style={cellStyle}>Spot</th>
+              <th style= {cellStyle}>Profit</th>
             </tr>
           </thead>
           <tbody>
             {orderData[type].map((order, index) => (
               <tr key={index}>
-                <td style={cellStyle}>{order.orderID}</td>
-                <td style={cellStyle}>{order.type}</td>
-                <td style={cellStyle}>{order.price}</td>
-                <td style={cellStyle}>{order.amount}</td>
-                <td style={cellStyle}>{order.executed}</td>
-                <td style={cellStyle}>
-                  <button onClick={() => cancelOrder(order.orderID)}>
-                    Cancel
-                  </button>
-                </td>
+                <td style={cellStyle}>{order.BetID}</td>
+                <td style={cellStyle}>{order.BetAmount}</td>
+                <td style={cellStyle}>{order.BetPrice}</td>
+                <td style={cellStyle}>{order.Time}</td>
+                <td style={cellStyle}>{order.Spot}</td>
+                <td style={cellStyle}>{parseFloat(order.Spot) - parseFloat(order.Time)}</td>
+
               </tr>
             ))}
         </tbody>
@@ -316,6 +344,7 @@ function Home(){
           }
         }}
       />
+
     </div>
 
   ));
@@ -353,7 +382,15 @@ function Home(){
       </div>
     );
   }
-
+  const inputRef= useRef(null)
+  const formInput = () => {
+            <OrderForm
+                   ref={inputRef}
+                   type={graphType}
+                   formData={formData[graphType] || {}}
+                   onChange={handleFormChange}
+                 />
+  }
   return (
     <div>
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '90vh' }}>
@@ -373,7 +410,11 @@ function Home(){
       </div>
       <div style={{ display: 'flex', flexGrow: 1, flexWrap: 'wrap' }}>
         {graphType === 'all' ? graphComponents : bigComponents.filter(comp => comp.key === graphType)}
+
+                   </div>
       </div>
+       <div>
+
       </div>
     </div>
     </div>

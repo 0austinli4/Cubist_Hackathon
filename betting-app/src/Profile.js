@@ -96,7 +96,7 @@ function Profile() {
  <div style={{ display: 'flex', flexDirection: 'column'}}>
       <div style={{display: 'flex', flexDirection:'row'}}>
          <img src="logo.png" alt="Logo" style={{ width: '160px', height: '160px', marginBottom: '-35px', marginTop: '20px' }} />
-         <PageHeader> Today's Bets </PageHeader>
+         <PageHeader> Profile </PageHeader>
          </div>
    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
         <div style= {{margin: '50px'}}>

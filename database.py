@@ -26,7 +26,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 
-def add_new_bet(bet_amount, bet_price, bet_time, input_spot):
+def add_new_bet(bet_amount, bet_price, input_spot=1):
     """
     Adds a new bet to the database and returns the ID of the new bet.
     """
@@ -35,7 +35,7 @@ def add_new_bet(bet_amount, bet_price, bet_time, input_spot):
         new_bet = Bet(
             BetAmount=bet_amount,
             BetPrice=bet_price,
-            Time=bet_time,
+            Time=datetime.now(),
             Spot=input_spot  # Corrected position of input_spot with comma
         )
         session.add(new_bet)
@@ -143,6 +143,28 @@ def main():
     else:
         print("Failed to add bet.")
 
+def get_all_bets():
+    """
+    Retrieves all bets from the database.
+    """
+    session = Session()
+    try:
+        all_bets = session.query(Bet).all()
+        bets_list = [
+            {
+                'BetID': bet.BetID,
+                'BetAmount': float(bet.BetAmount),
+                'BetPrice': float(bet.BetPrice),
+                'Time': bet.Time.isoformat(),  # Convert datetime to string
+                'Spot': bet.Spot
+            } for bet in all_bets
+        ]
+        return bets_list
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+    finally:
+        session.close()
 
 if __name__ == "__main__":
     main()
