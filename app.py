@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, emit
 import random
 import os
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
 CORS(app)
