@@ -29,7 +29,13 @@ function App() {
   });
 
   const [timeLeft, setTimeLeft] = useState(60);
-  
+
+  const [orderData, setOrderData] = useState({
+    standard: [],
+    volatile: [],
+    biased_positive: [],
+    biased_negative: []
+  });
 
   const handleFormChange = (type, name, value) => {
     setFormData(prevData => ({
@@ -48,7 +54,6 @@ function App() {
     const fetchData = (type) => {
       axios.get(`http://localhost:5000/random-number/${type}`)
         .then(response => {
-          console.log(response.data);
           const newNumber = response.data.random_number;
           const newBid = response.data.bid;
           const newAsk = response.data.ask;
@@ -57,6 +62,15 @@ function App() {
         .catch(error => {
           console.error('Error fetching data:', error);
         });
+
+        // Fetch orders data from the '/orders' endpoint
+      axios.get(`http://localhost:5000/orders/${type}`)
+        .then(response => {
+          updateOrderData(response.data.orders, type);
+        })
+        .catch(error => {
+          console.error('Error fetching orders:', error);
+        });
     };
 
     if (graphType === 'all') {
@@ -64,6 +78,7 @@ function App() {
     } else {
       fetchData(graphType);
     }
+
     const intervalId = setInterval(() => {
       if (graphType === 'all') {
         ['standard', 'volatile', 'biased_positive', 'biased_negative'].forEach(type => fetchData(type));
@@ -73,6 +88,13 @@ function App() {
     }, 5000);
     return () => clearInterval(intervalId);
   }, [graphType]);
+
+  const updateOrderData = (orders, type) => {
+    setOrderData(prevOrderData => ({
+      ...prevOrderData,
+      [type]: orders
+    }));
+  }
 
   const updateChartData = (newNumber, newBid, newAsk, type) => {
     setGraphData(prevData => {
@@ -112,6 +134,19 @@ function App() {
     }
   };
 
+  const cancelOrder = (orderId) => {
+    // Function to cancel order by sending a request to the '/cancel-orders' endpoint
+    axios.post('/cancel-orders', { orderId })
+      .then(response => {
+        console.log('Order cancelled successfully:', response.data);
+        // Assuming response data contains updated orders information
+        setOrderData(response.data);
+      })
+      .catch(error => {
+        console.error('Error cancelling order:', error);
+      });
+  };
+
   function OrderForm({ type, formData, onChange }) {
 
     return (
@@ -142,6 +177,19 @@ function App() {
     );
   }  
   
+  // Simple CSS for table borders
+  const tableStyle = {
+    border: '1px solid black', // Sets the border around the table
+    borderCollapse: 'collapse', // Ensures borders between cells are shared
+    marginLeft: '5px'
+  };
+
+  const cellStyle = {
+    border: '1px solid black', // Sets the border around each cell
+    padding: '8px', // Adds some padding inside each cell for better readability
+    textAlign: 'center' // Centers the text inside the cells
+  };
+
   const bigComponents = Object.keys(graphData).map((type) => (
     <div key={type} style={{ width: '100%', height: '50%' }}>
       <h3>{type.replace('_', ' ').toUpperCase()}</h3>
@@ -200,6 +248,33 @@ function App() {
         formData={formData[type]}
         onChange={handleFormChange}
       />
+      <table style={tableStyle}>
+          <thead>
+            <tr>
+              <th style={cellStyle}>Order ID</th>
+              <th style={cellStyle}>Type</th>
+              <th style={cellStyle}>Price</th>
+              <th style={cellStyle}>Amount</th>
+              <th style={cellStyle}>Executed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orderData[type].map((order, index) => (
+              <tr key={index}>
+                <td style={cellStyle}>{order.orderID}</td>
+                <td style={cellStyle}>{order.type}</td>
+                <td style={cellStyle}>{order.price}</td>
+                <td style={cellStyle}>{order.amount}</td>
+                <td style={cellStyle}>{order.executed}</td>
+                <td style={cellStyle}>
+                  <button onClick={() => cancelOrder(order.orderID)}>
+                    Cancel
+                  </button>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </div>
   ));
   

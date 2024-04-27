@@ -21,21 +21,6 @@ current_numbers = {
 def index():
     return "Real-Time Betting App"
 
-@socketio.on('connect')
-def test_connect():
-    try:
-        emit('response', {'message': 'Connected to server'})
-    except Exception as e:
-        emit('error', {'message': str(e)})
-
-@socketio.on('place_bet')
-def handle_place_bet(json):
-    try:
-        print('Received bet:', json)
-        emit('bet_status', {'status': 'Received'}, broadcast=True)
-    except Exception as e:
-        emit('error', {'message': str(e)})
-
 def random_walk_adjustment(walk_type):
     if walk_type == 'standard':
         return random.randint(-2, 2)
@@ -53,6 +38,10 @@ def random_number(walk_type):
         return jsonify({'random_number': current_numbers[walk_type], 'bid': (current_numbers[walk_type]-2), 'ask':(current_numbers[walk_type]+2)})
     else:
         return jsonify({'error': 'Invalid walk type'}), 400
+
+@app.route('/orders/<walk_type>')
+def no_orders(walk_type):
+    return jsonify({'orders':[{'orderID':0, 'type': 0, 'price':0, 'amount':0, 'executed':0}]})
 
 if __name__ == '__main__':
     socketio.run(app)
