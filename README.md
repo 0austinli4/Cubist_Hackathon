@@ -11,6 +11,9 @@ Historical data is obtained from the recorded data files streamed from the csp, 
 - Flask: the backend, which queries the NYC metro data real time, is written with the Flask framework in Python
 - PostgreSQL: the database stores the user's bets, and at every settlement date, calculates the PnL of the user
 
+## Data Streaming
+- CSP: we use the CSP data streaming service to pass live updates into bets based on real time updates given by the MTA system
+
 ## Installation & Running
 1. Run python app.py
 2. cd ./betting-app
