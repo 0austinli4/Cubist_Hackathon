@@ -25,7 +25,7 @@ def index():
 
 def random_walk_adjustment(walk_type):
     if walk_type == 'standard':
-        return random.normal(0, 10, 100)
+        return random.random()-0.5
     elif walk_type == 'volatile':
         return random.randint(-5, 5)
     elif walk_type == 'biased_positive':
@@ -37,7 +37,7 @@ def random_walk_adjustment(walk_type):
 def random_number(walk_type):
     if walk_type in current_numbers:
         current_numbers[walk_type] += random_walk_adjustment(walk_type)
-        return jsonify({'random_number': current_numbers[walk_type], 'bid': (current_numbers[walk_type]-2), 'ask':(current_numbers[walk_type]+2)})
+        return jsonify({'random_number': current_numbers[walk_type], 'bid': (current_numbers[walk_type]-1-random.random()), 'ask':(current_numbers[walk_type]+1+random.random())})
     else:
         return jsonify({'error': 'Invalid walk type'}), 400
     
