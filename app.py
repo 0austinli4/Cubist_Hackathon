@@ -5,7 +5,6 @@ import random
 import os
 import csp
 # from csp_mta_team import departure_board  # Adapt this import according to your actual module structure
-from e_01_nyct_subway import trains_now_board
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
@@ -26,7 +25,7 @@ def index():
 
 def random_walk_adjustment(walk_type):
     if walk_type == 'standard':
-        return random.randint(-2, 2)
+        return random.normal(0, 10,100)
     elif walk_type == 'volatile':
         return random.randint(-5, 5)
     elif walk_type == 'biased_positive':
