@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime, timedelta
 from typing import List, Tuple
+import app
 
 import csp
 
@@ -11,7 +12,6 @@ from csp_mta_team import (
     GTFSRealtimeInputAdapter,
     nyct_subway_pb2,
 )
-
 
 def get_stop_time_at_station(entity, stop_id):
     """
@@ -71,10 +71,7 @@ def filter_trains_delayed_for_stop(
     for entity in gtfs_msgs.entity:
         if get_delay_station_time(entity, stop_id):
             relevant_entities.append(entity)
-        # if get_stop_time_at_station(entity, stop_id):
-        #     relevant_entities.append(entity)
     return relevant_entities
-
 
 @csp.node
 def next_N_delay_at_stop(
@@ -85,8 +82,7 @@ def next_N_delay_at_stop(
     """
    # gtfs_msgs.sort(key=lambda entity: get_stop_time_at_station(entity, stop_id))
     gtfs_msgs.sort(key=lambda entity: get_delay_station_time(entity, stop_id))
-    print("HELLO")
-    #RETURN THIS HERE
+    
     return gtfs_msgs[:N]
 
 
@@ -98,6 +94,8 @@ def entities_to_departure_board_str(entities, stop_id):
     """
     Helper function to pretty-print train info
     """
+    avg_time = 0
+
     dep_str = f'\n At station {STOP_INFO_DF.loc[stop_id, "stop_name"]}\n\n'
     for entity in entities:
         route = entity.trip_update.trip.route_id
@@ -109,10 +107,11 @@ def entities_to_departure_board_str(entities, stop_id):
         terminus = get_terminus(entity)
         arrival = datetime.fromtimestamp(get_stop_time_at_station(entity, stop_id))
         delta = arrival - datetime.now()
+        avg_time += delta.total_seconds()
         dep_str += f'{direction} {route} train to {STOP_INFO_DF.loc[terminus, "stop_name"]} in {round(delta.total_seconds() // 60)} minutes\n'
-
-    return dep_str
-
+    
+    avg_time /= 10
+    return str(avg_time)
 
 @csp.graph
 def delay_board(platforms: List[Tuple[str, str]], N: int):
@@ -129,7 +128,7 @@ def delay_board(platforms: List[Tuple[str, str]], N: int):
             lambda x, key_=stop_id: entities_to_departure_board_str(x, key_),
             str,
         )
-        csp.print("Departure Board", dep_str)
+        #csp.print("Departure Board", dep_str)
 
 @csp.node
 def next_N_trains_at_stop(
@@ -139,10 +138,19 @@ def next_N_trains_at_stop(
     Returns the TripUpdate objects of the next N trains approaching the stop
     """
     gtfs_msgs.sort(key=lambda entity: get_stop_time_at_station(entity, stop_id))
+    # print("MESSSSAGESS")
+    # print(gtfs_msgs[:N])
     return gtfs_msgs[:N]
+
+@csp.node
+def send_to_my_app(avg_time: csp.ts[str]):
+    # , app: object
+    if csp.ticked(avg_time):
+        app.train_order(avg_time)
 
 @csp.graph
 def departure_board(platforms: List[Tuple[str, str]], N: int):
+    # , app: object
     """
     csp graph which ticks out the next N trains approaching the provided stations on each given line
     """
@@ -151,15 +159,16 @@ def departure_board(platforms: List[Tuple[str, str]], N: int):
         line_data = GTFSRealtimeInputAdapter(line, False)
         trains_headed_for_station = filter_trains_headed_for_stop(line_data, stop_id)
         next_N_trains = next_N_trains_at_stop(trains_headed_for_station, stop_id, N)
-        dep_str = csp.apply(
+        avg_time = csp.apply(
             next_N_trains,
             lambda x, key_=stop_id: entities_to_departure_board_str(x, key_),
             str,
         )
-        csp.print("Departure Board", dep_str)
+        # csp.print("MY DEP STR", dep_str)
+        send_to_my_app(avg_time)
+        #csp.print("Departure Board", dep_str)
 
 def run_delay(platforms):
-    show_graph = False
     run_graph = True
     num_trains = 10
     # print(platforms, show_graph, run_graph, num_trains)
@@ -196,10 +205,9 @@ def run_delay(platforms):
             realtime=True,
         )
 
-
 def trains_now_board(platforms):
     run_graph = True
-    num_trains = 40
+    num_trains = 10
 
     # Process input data
     platforms_to_subscribe_to = []
@@ -225,6 +233,7 @@ def trains_now_board(platforms):
         platforms_to_subscribe_to.append((stop_id, train_line))
 
     # departure_board(platforms_to_subscribe_to, num_trains)
+    print("RUNNING GRAPH")
     if run_graph:
         csp.run(
             departure_board,
